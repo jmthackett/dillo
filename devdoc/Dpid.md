@@ -2,50 +2,43 @@ Aug 2003, Jorge Arellano Cid,
            Ferdi Franceschini --
 Last update: Nov 2009
 
+# dpid
 
-                               ------
-                                dpid
-                               ------
+# Nomenclature:
 
--------------
-Nomenclature:
--------------
-
-  dpi:
+*  dpi:
     generic term referring to dillo's plugin system (version1).
 
-  dpi1:
+*  dpi1:
     specific term for dillo's plugin spec version 1.
     at: http://www.dillo.org/dpi1.html
 
-  dpi program:
+*  dpi program:
     any plugin program itself.
 
-  dpi framework:
+*  dpi framework:
     the code base inside and outside dillo that makes dpi1
     working possible (it doesn't include dpi programs).
 
-  dpip:
+*  dpip:
     dillo plugin protocol. The HTML/XML like set of command tags
     and information that goes inside the communication sockets.
     Note: not yet fully defined, but functional.
     Note2: it was designed to be extensible.
 
-  dpid:
+*  dpid:
     dillo plugin daemon.
 
-  server plugin:
+*  server plugin:
     A plugin that is capable of accepting connections on a socket.  Dpid will
     never run more than one instance of a server plugin at a time.
 
-  filter plugin:
+ * filter plugin:
     A dpi program that reads from stdin and writes to stdout, and that
     exits after its task is done (they don't remain as server plugins).
     Warning, dpid will run multiple instances of filter plugins if requested.
 
------------
-About dpid:
------------
+# About dpid
 
   * dpid is a program which manages dpi connections.
   * dpid is a daemon that serves dillo using IDS sockets.
@@ -58,10 +51,9 @@ and  returns  the  socket/port  pair of a plugin that handles the
 service.  It  also watches sockets of inactive plugins and starts
 them when a connection is requested.
 
+> Note while editing: I wonder if dpid could now be replaced with busybox's implementation of inetd?
 
------------------------------------------------------------
-What's the problem with managing dpi programs inside dillo?
------------------------------------------------------------
+# What's the problem with managing dpi programs inside dillo?
 
   That's the other way to handle it, but it started to show some
 problems (briefly outlined here):
@@ -90,10 +82,7 @@ problems (briefly outlined here):
 
   That's why the managing daemon scheme was chosen.
 
-
-----------------------
-What does dpid handle?
-----------------------
+# What does dpid handle?
 
   It solves all the above mentioned shortcomings and also can do:
 
@@ -129,9 +118,8 @@ following functions is very helpful:
   * "multiple clients/one instance"   downloads, cookies ...
 
 
---------
-Features
---------
+# Features
+
   * Dpi programs go in: "EPREFIX/dillo/dpi" or "~/.dillo/dpi". The binaries
     are named <name>.dpi as "bookmarks.dpi" and <name>.filter.dpi as in
     "hello.filter.dpi".  The  ".filter"  plugins simply read from stdin
@@ -142,86 +130,69 @@ Features
   * dpis can be terminated with a 'DpiBye' command.
   * dpidc control program for dpid, currently allows register and stop.
 
-
------
-todo:
------
+# todo
 
  These features are already designed, waiting for implementation:
 
   * dpidc remove     // May be not necessary after all...
 
+# How does it work?
 
------------------
-How does it work?
------------------
+* on startup dpid reads dpidrc for the path to the dpi directory (usually EPREFIX/lib/dillo/dpi). ~/.dillo/dpi is scanned first.
 
-o    on startup dpid reads dpidrc for the path to the dpi directory
-     (usually EPREFIX/lib/dillo/dpi). ~/.dillo/dpi is scanned first.
+* both directories are scanned for the list of available plugins. ~/.dillo/dpi overrides system-wide dpis.
 
-o    both directories are scanned for the list of available plugins.
-     ~/.dillo/dpi overrides system-wide dpis.
+* next it creates internet domain sockets for the available plugins and then listens for service requests on its own socket, and for connections to the sockets of inactive plugins.
 
-o    next it creates internet domain sockets for the available plugins and
-     then listens for service requests on its own socket,
-     and for connections to the sockets of inactive plugins.
-
-o    dpid returns the port of a plugin's socket when a client (dillo)
+* dpid returns the port of a plugin's socket when a client (dillo)
      requests a service.
 
-o    if the requested plugin is a 'server' then
+*  if the requested plugin is a 'server' then
      1) dpid stops watching the socket for activity
      2) forks and starts the plugin
      3) resumes watching the socket when the plugin exits
 
-o    if the requested plugin is a 'filter' then
+*  if the requested plugin is a 'filter' then
      1) dpid accepts the connection
      2) maps the socket fd to stdin/stdout (with dup2)
      3) forks and starts the plugin
      4) continues to watch the socket for new connections
 
-
-
-
----------------------------
-dpi service process diagram
----------------------------
+# dpi service process diagram
 
   These drawings should be worth a thousand words! :)
 
-
+```
 (I)
      .--- s1 s2 s3 ... sn
      |
   [dpid]                     [dillo]
      |
      '--- srs
-
+```
   The dpid is running listening on several sockets.
 
-
+```
 (II)
      .--- s1 s2 s3 ... sn
      |
   [dpid]                     [dillo]
      |                          |
      '--- srs ------------------'
+```
+  dillo needs a service so it connects to the service request socket of the dpid (srs) and asks for the socket name of the required plugin (using dpip).
 
-  dillo needs a service so it connects to the service request
-  socket of the dpid (srs) and asks for the socket name of the
-  required plugin (using dpip).
-
-
+```
 (III)
      .--- s1 s2 s3 ... sn
      |          |
   [dpid]        |            [dillo]
      |          |               |
      '--- srs   '---------------'
-
+```
   then it connects to that socket (s3, still serviced by dpid!)
 
-
+```
 (IV)
      .--- s1 s2 s3 ... sn
      |          |
@@ -230,11 +201,10 @@ dpi service process diagram
  .   '--- srs   '---------------'
  .
  .............[dpi program]
+```
+  when s3 has activity (incoming data), dpid forks the dpi program for it...
 
-  when s3 has activity (incoming data), dpid forks the dpi
-  program for it...
-
-
+```
 (V)
      .--- s1 s2 (s3) ... sn
      |
@@ -243,47 +213,32 @@ dpi service process diagram
      '--- srs   .---------------'
                 |
               [dpi program]
+```
 
   ... and lets it "to take over" the socket.
 
-  Once  there's  a  socket  channel  for dpi and dillo, the whole
-communication  process  takes  place until the task is done. When
-the dpi program exits, dpid resumes listening on the socket (s3).
+  Once  there's  a  socket  channel  for dpi and dillo, the whole communication  process  takes  place until the task is done. When the dpi program exits, dpid resumes listening on the socket (s3).
 
+# So, how do I make my own plugin?
 
---------------------------------
-So, how do I make my own plugin?
---------------------------------
+  Maybe  the  simplest  way to get started is to understand a few concepts  and  then to use the hands-on method by using/modifying the  hello  dpi.  It's  designed  as an example to get developers started.
 
-  Maybe  the  simplest  way to get started is to understand a few
-concepts  and  then to use the hands-on method by using/modifying
-the  hello  dpi.  It's  designed  as an example to get developers
-started.
+# Concepts:
 
-  ---------
-  Concepts:
-  ---------
-
-    * Dillo plugins work by communicating two processes: dillo
-      and the dpi.
-    * The underlying protocol (DPIP) has a uniform API which is
-      powerful  enough  for both blocking and nonblocking IO, and
-      filter or server dpis.
-    * The simplest example is one-request one-answer (for example
-      dillo  asks  for  a  URL and the dpi sends it). You'll find
-      this and more complex examples in hello.c
+* Dillo plugins work by communicating two processes: dillo and the dpi.
+* The underlying protocol (DPIP) has a uniform API which is powerful  enough  for both blocking and nonblocking IO, and filter or server dpis.
+* The simplest example is one-request one-answer (for example dillo  asks  for  a  URL and the dpi sends it). You'll find this and more complex examples in hello.c
 
   First, you should get familiar with the hello dpi as a user:
 
+```
     $dillo dpi:/hello/
+```
 
   Once  you've  played  enough  with  it,  start reading the well
 commented code in hello.c and start making changes!
 
-
-  ---------------
-  Debugging a dpi
-  ---------------
+# Debugging a dpi
 
   The  simplest way is to add printf-like feedback using the MSG*
 macros.  You  can  start  the dpid by hand on a terminal to force
@@ -293,39 +248,27 @@ stdout.
   Sometimes  more  complex dpis need more than MSG*. In this case
 you can use gdb like this.
 
-    1.- Add an sleep(20) statement just after the dpi starts.
-    2.- Start  dillo and issue a request for your dpi. This will
-        get your dpi started.
-    3.- Standing in the dpi source directory:
-        ps aux|grep dpi
-    4.- Take note of the dpi's PID and start gdb, then:
-        (gdb) attach <PID>
-    5.- Continue from there...
+* Add an sleep(20) statement just after the dpi starts.
+* Start  dillo and issue a request for your dpi. This will get your dpi started.
+* Standing in the dpi source directory:
+```
+ps aux|grep dpi
+```
+* Take note of the dpi's PID and start gdb, then:
+```
+(gdb) attach <PID>
+```
+* Continue from there...
 
+# Final Notes:
 
-  ------------
-  Final Notes:
-  ------------
-
-  1.-  If  you  already  understand the hello dpi and want to try
+  
+*  If  you  already  understand the hello dpi and want to try
 something more advanced:
 
-    * bookmarks.c is a good example of a blocking server
-    * file.c is an advanced example of a server handling multiple
-      non-blocking connections with select().
+* * bookmarks.c is a good example of a blocking server
+* * file.c is an advanced example of a server handling multiple non-blocking connections with select().
 
-  2.-   Multiple   instances  of  a  filter  plugin  may  be  run
-concurrently, this could be a problem if your plugin records data
-in  a  file,  however  it  is safe if you simply write to stdout.
-Alternatively  you  could write a 'server' plugin instead as they
-are guaranteed not to run concurrently.
+* Multiple   instances  of  a  filter  plugin  may  be  run concurrently, this could be a problem if your plugin records data in  a  file,  however  it  is safe if you simply write to stdout. Alternatively  you  could write a 'server' plugin instead as they are guaranteed not to run concurrently.
 
-  3.- The hardest part is to try to modify the dpi framework code
-inside  dillo; you have been warned! It already supports a lot of
-functionality,  but if you need to do some very custom stuff, try
-extending the "chat" command, or asking in dillo-dev.
-
-
-
-          >>>>>>>>>>>>>>>>>>>>>       <<<<<<<<<<<<<<<<<<<<<
-
+* The hardest part is to try to modify the dpi framework code inside  dillo; you have been warned! It already supports a lot of functionality,  but if you need to do some very custom stuff, try extending the "chat" command, or asking in dillo-dev.
