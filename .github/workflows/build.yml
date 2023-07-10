@@ -8,4 +8,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build
-        run: apt-get update -yq && apt-get install -yq automake autotools && ./configure && make
+        run: ./configure && make
