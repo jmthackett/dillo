@@ -344,7 +344,7 @@ any further processing.
 and let the I/O engine handle the file descriptor activity, until
 it  receives a call-back for finally processing the data. This is
 better understood by examining the request structure:
-
+```
  typedef struct {
     gint Key;              /* Primary Key (for klist) */
     gint Op;               /* IORead | IOWrite | IOWrites */
@@ -361,7 +361,7 @@ better understood by examining the request structure:
     GIOChannel *GioCh;     /* IO channel */
     guint watch_id;        /* glib's event source id */
  } IOData_t;
-
+```
    To request an I/O operation, this structure must be filled and
 passed to the I/O engine.
 
