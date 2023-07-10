@@ -2,7 +2,6 @@
 
 # DILLO
 
-
    These  notes are written with a view to make it less hard, not
 easier yet ;), to get into Dillo development.
 
@@ -18,11 +17,11 @@ developers.
 
    Dillo can be viewed as the sum of five main parts:
 
-   1.- Dillo Widget: A custom widget, FLTK-based, that holds the
+   * **Dillo Widget**: A custom widget, FLTK-based, that holds the
 necessary data structures and mechanisms for graphical rendering.
 (Described in Dw*.md, dw*.c files among the sources.)
 
-   2.-  Dillo Cache: Integrated with a signal driven Input/Output
+   *  **Dillo Cache**: Integrated with a signal driven Input/Output
 engine  that  handles file descriptor activity, the cache acts as
 the  main  abstraction  layer  between  rendering and networking.
    Every  URL,  whether  cached  or  not, must be retrieved using
@@ -30,16 +29,16 @@ a_Capi_open_url   (Described   briefly   in   Cache.txt,  source
 contained in capi.c).
    IO is described in IO.md (recommended), source in src/IO/.
 
-   3.-  The  HTML  parser: A streamed parser that joins the Dillo
+   *  **The  HTML  parser**: A streamed parser that joins the Dillo
 Widget  and  the  Cache  functionality  to make browsing possible
 (Described in HtmlParser.md, source mainly inside html.cc).
 
-   4.-  Image  processing  code:  The  part  that  handles  image
+   * **Image  processing** code:  The  part  that  handles  image
 retrieval,  decoding,  caching  and  displaying.  (Described  in
 Images.md.   Sources:  image.c,  dw/image.cc,  dicache.c,  gif.c,
 jpeg.c and png.c)
 
-   5.- The dpi framework: a gateway to interface the browser with
+   * **The DPI framework**: a gateway to interface the browser with
 external programs (Example: the bookmarks server plugin).
 Dpi spec: http://www.dillo.org/dpi1.html
 
