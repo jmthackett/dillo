@@ -5,13 +5,14 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-focal
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Build
-        run: sudo apt-get install -yq fltk1.3-dev bash && \
-          cd /home/runner/work/dillo/dillo && \
-          ./autogen.sh && \ 
-          ./configure && \
+        run: |
+          sudo apt-get install -yq fltk1.3-dev bash 
+          cd /home/runner/work/dillo/dillo 
+          ./autogen.sh 
+          ./configure 
           make -e LDFLAGS='-L/usr/local/lib -z muldefs'
