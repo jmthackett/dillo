@@ -14,8 +14,10 @@ jobs:
           echo $PATH
           echo $CWD
           echo $PWD
-          sudo apt-get install -yq fltk1.3-dev bash 
+          sudo apt-get install -yq fltk1.3-dev bash libtool autoconf automake
           cd /home/runner/work/dillo/dillo 
+          autoupdate
+          libtoolize
           ./autogen.sh 
           ./configure 
           make -e LDFLAGS='-L/usr/local/lib -z muldefs'
