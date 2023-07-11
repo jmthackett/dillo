@@ -11,6 +11,9 @@ jobs:
         uses: actions/checkout@v3
       - name: Build
         run: |
+          echo $PATH
+          echo $CWD
+          echo $PWD
           sudo apt-get install -yq fltk1.3-dev bash 
           cd /home/runner/work/dillo/dillo 
           ./autogen.sh 
