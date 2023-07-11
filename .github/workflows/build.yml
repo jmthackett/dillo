@@ -8,4 +8,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build
-        run: autoconf && automake && ./autogen.sh && ./configure && make -e LDFLAGS='-L/usr/local/lib -z muldefs'
+        run: /bin/sh autogen.sh && ./configure && make -e LDFLAGS='-L/usr/local/lib -z muldefs'
