@@ -10,4 +10,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Build
-        run: /bin/sh autogen.sh && ./configure && make -e LDFLAGS='-L/usr/local/lib -z muldefs'
+        run: sudo apt-get install -yq fltk1.3-dev && \
+          /bin/sh autogen.sh && \ 
+          ./configure && \
+          make -e LDFLAGS='-L/usr/local/lib -z muldefs'
