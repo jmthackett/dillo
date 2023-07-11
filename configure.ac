@@ -10,6 +10,7 @@ AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([src/dillo.cc])
 AC_CONFIG_HEADERS([config.h])
+LT_INIT
 
 sysconfdir=${sysconfdir}/${PACKAGE}
 
